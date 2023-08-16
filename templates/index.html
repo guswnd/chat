@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프로필 작성 및 관리</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <h1>프로필 작성 및 관리</h1>
+
+  <button id="create-profile-btn">프로필 작성하기</button>
+  <button id="submit-profile-btn">제출하기</button>
+
+
+  <div id="profile-container">
+    {% for profile in profiles %}
+      <div class="profile-card" data-profile-id="{{ profile.id }}">
+        <img src="{{ profile.photo_url }}" alt="Profile Image" width="200" height="200">
+        <h3>{{ profile.name }}</h3>
+        <p>{{ profile.bio }}</p>
+        <button class="edit-btn">수정</button>
+        <button class="delete-btn">삭제</button>
+        <button class="select-btn">선택</button>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div id="profile-popup" class="hidden">
+    <div id="profile-popup-content">
+      <h2>프로필 작성</h2>
+      <form id="profile-form" action="{{ url_for('add_profile') }}" method="post" enctype="multipart/form-data">
+        <label for="name">이름:</label>
+        <input type="text" name="name" id="name" required>
+        <br>
+        <label for="bio">소개:</label>
+        <textarea name="bio" id="bio" required></textarea>
+        <br>
+        <label for="photo">프로필 사진:</label>
+        <input type="file" name="photo" id="photo" accept="image/*">
+        <br>
+        <input type="submit" value="프로필 저장">
+      </form>
+      <button id="cancel-btn">닫기</button>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

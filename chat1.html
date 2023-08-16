@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 대화</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="text-center mt-4"> </h1>
+        <div class="chat-box mt-4">
+            <div id="message-list" class="message-list"></div>
+            <form id="send-message-form" class="d-flex align-items-center mt-3">
+                <input type="text" id="message-text" class="form-control me-3" placeholder="메시지 입력" required>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> 전송
+                </button>
+            </form>
+        </div>
+    </div>
+    <script>
+
+    const profileId = "{{ profile.id }}";
+    const profileName = "{{ profile.name }}";
+    const profileBio = "{{ profile.bio }}";
+    const profilePhotoUrl = "{{ profile.photo_url }}";
+
+        // API 요청을 위한 함수
+        const apiKey = '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'; // API 키를 상수로 저장
+        const messages = [
+  {
+    role: "system",
+    content: `Name: ${profileName}, Bio: ${profileBio}`,
+  },
+
+];
+
+        async function sendMessageToAI(messages) {
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-4",
+                    messages: messages,
+                    temperature: 0.2,
+                    max_tokens: 1024,
+                    top_p: 1,
+                    frequency_penalty: 0.5,
+                    presence_penalty: 0.9,
+                    stop: ["Human"]
+                })
+            };
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', requestOptions);
+                const data = await response.json();
+                const aiResponse = data.choices[0].message.content;
+                return aiResponse;
+            } catch (error) {
+                console.error('OpenAI API 호출 중 오류 발생:', error);
+                return 'OpenAI API 호출 중 오류 발생';
+            }
+        }
+
+        const messageList = document.getElementById('message-list');
+        const sendMessageForm = document.getElementById('send-message-form');
+        const messageText = document.getElementById('message-text');
+
+        sendMessageForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const userMessage = messageText.value.trim();
+            if (!userMessage) return;
+
+            displayMessage('User', userMessage);
+            messageText.value = '';
+            messageText.disabled = true;
+
+            messages.push({
+                role: "user",
+                content: userMessage,
+            });
+
+            const aiMessage = await sendMessageToAI(messages);
+            displayMessage('AI', aiMessage);
+            messageText.disabled = false;
+            messageText.focus();
+        });
+
+        function displayMessage(sender, message) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', sender === 'User' ? 'message-right' : 'message-left');
+    const userIconUrl = "{{ url_for('static', filename='user-icon.png') }}";
+    messageElement.innerHTML = `
+        <img src="${sender === 'User' ? userIconUrl : profilePhotoUrl}" alt="${sender}">
+        <p>${message}</p>
+    `;
+
+    messageList.appendChild(messageElement);
+    messageList.scrollTop = messageList.scrollHeight;
+}
+    </script>
+</body>
+</html>
